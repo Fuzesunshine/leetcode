@@ -1,32 +1,61 @@
-class Solution:
-    def maxProduct(self, s: str) -> int:
-        n = len(s)
-
-        def manacher(s: str) -> List[int]:
-            maxExtends = [0] * n
-            l2r = [1] * n
-            center = 0
-
-            for i in range(n):
-                r = center + maxExtends[center] - 1
-                mirrorIndex = center - (i - center)
-                extend = 1 if i > r else min(maxExtends[mirrorIndex], r - i + 1)
-                while i - extend >= 0 and i + extend < n and s[i - extend] == s[i + extend]:
-                    l2r[i + extend] = 2 * extend + 1
-                    extend += 1
-                maxExtends[i] = extend
-                if i + maxExtends[i] >= r:
-                    center = i
-
+class Solution(object):
+    def maxProduct(self, s):
+        """
+        :type s: str
+        :rtype: int
+        """
+        def manacher(s):
+            maxCenter = 0
+            maxRight = 0
+            n = len(s)
+            radius = [0] * n
+            
             for i in range(1, n):
-                l2r[i] = max(l2r[i], l2r[i - 1])
-
-            return l2r
-
-        # l[i] := max length of palindromes in s[0..i)
-        l = manacher(s)
-        # r[i] := max length of palindromes in s[i..n)
-        r = manacher(s[::-1])[::-1]
-        return max(l[i] * r[i + 1] for i in range(n - 1))
-
+                if maxRight > i:
+                    minR = min(radius[2*maxCenter-i], maxRight-i)
+                else:
+                    minR = 0
+                j = 1
+                while (i-minR >=0) and (i+minR < n) and(s[i-minR]==s[i+minR]):
+                    minR += 1
+                radius[i] = minR - 1
+                
+                if i+radius[i] > maxRight:
+                    maxRight = i+radius[i]
+                    maxCenter = i
+            
+            return radius
+        
+        radius = manacher(s)        
+        maxLeft = [0 for _ in range(len(s)-1)]
+        maxRight = [0 for _ in range(len(s)-1)]
+        
+        j = 0
+        for i in range(1, len(s)-1):
+            addR = 0
+            while(j < i):
+                if radius[j] + j < i:
+                    j += 1
+                else:
+                    addR = i-j
+                    break
+            maxLeft[i] = max(maxLeft[i-1], addR)
+        
+        j = len(s)-1
+        for i in range(len(s)-3, -1, -1):
+            addR = 0
+            while(i + 1 < j):
+                if j - radius[j] > i + 1:
+                    j -= 1
+                else:
+                    addR = j - i - 1
+                    break
+            maxRight[i] = max(maxRight[i+1], addR)
+        
+        res = 0
+        for maxL, maxR in zip(maxLeft, maxRight):
+            if res < (2*maxL+1)*(2*maxR+1):
+                res = (2*maxL+1)*(2*maxR+1)
+        
+        return res
         
