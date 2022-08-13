@@ -32,11 +32,6 @@ class Solution(object):
                 else:
                     remain_words = []+words
                     visited_words = []
-                    
-                # print(piece)
-                # print(visited_words)
-                # print(remain_words)
-                # print('___________')
-                
+
         return res 
         
